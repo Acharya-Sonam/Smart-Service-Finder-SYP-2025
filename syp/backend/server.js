@@ -14,6 +14,7 @@ import protectedRoutes from "./routes/protected.routes.js";
 import serviceRoutes   from "./routes/service.routes.js";
 import bookingRoutes   from "./routes/booking.routes.js";
 import reviewRoutes    from "./routes/review.routes.js";
+import adminRoutes     from "./routes/admin.routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -31,6 +32,7 @@ app.use("/api",          protectedRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/reviews",  reviewRoutes);
+app.use("/api/admin",    adminRoutes);
 
 app.get("/", (req, res) => res.json({ status: "SmartService API is running" }));
 

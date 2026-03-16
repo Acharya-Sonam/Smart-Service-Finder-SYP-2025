@@ -2,7 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcrypt");
-const User = require("./models/User");
+const User = require("../models/User.js");
 const cors = require("cors");
 
 const app = express();
