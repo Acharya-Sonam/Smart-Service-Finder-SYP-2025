@@ -1,46 +1,66 @@
-import dotenv from "dotenv";
-dotenv.config({ path: new URL("./.env", import.meta.url).pathname });
+import express        from "express";
+import cors           from "cors";
+import dotenv         from "dotenv";
+import http           from "http";
+import { Server }     from "socket.io";
 
-import express from "express";
-import cors from "cors";
+import authRoutes     from "./routes/auth.routes.js";
+import bookingRoutes  from "./routes/booking.routes.js";   // your friend's
+import reviewRoutes   from "./routes/review.routes.js";    // your friend's
+import serviceRoutes  from "./routes/service.routes.js";   // your friend's
+import chatRoutes     from "./routes/chat.routes.js";
+import notifRoutes    from "./routes/notification.routes.js";
+import locationRoutes from "./routes/location.routes.js";
 
-import UserModel    from "./models/user.js";
-import ServiceModel from "./models/Service.js";
-import BookingModel from "./models/Booking.js";
-import ReviewModel  from "./models/Review.js";
+dotenv.config();
 
-import authRoutes      from "./routes/auth.routes.js";
-import protectedRoutes from "./routes/protected.routes.js";
-import serviceRoutes   from "./routes/service.routes.js";
-import bookingRoutes   from "./routes/booking.routes.js";
-import reviewRoutes    from "./routes/review.routes.js";
-import adminRoutes     from "./routes/admin.routes.js";
+const app    = express();
+const server = http.createServer(app);
 
-const app = express();
-const PORT = process.env.PORT || 5000;
+const io = new Server(server, {
+  cors: { origin: "http://localhost:5173", methods: ["GET", "POST"] },
+});
 
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use(cors({ origin: "http://localhost:5173" }));
 app.use(express.json());
 
-await UserModel.createTable();
-await ServiceModel.createTable();
-await BookingModel.createTable();
-await ReviewModel.createTable();
+// Attach io to every request so routes can emit events
+app.use((req, _res, next) => { req.io = io; next(); });
 
-app.use("/api/auth",     authRoutes);
-app.use("/api",          protectedRoutes);
-app.use("/api/services", serviceRoutes);
-app.use("/api/bookings", bookingRoutes);
-app.use("/api/reviews",  reviewRoutes);
-app.use("/api/admin",    adminRoutes);
+// ── Routes ────────────────────────────────────────────────────────
+app.use("/api/auth",          authRoutes);
+app.use("/api/bookings",      bookingRoutes);
+app.use("/api/reviews",       reviewRoutes);
+app.use("/api/services",      serviceRoutes);
+app.use("/api/chat",          chatRoutes);
+app.use("/api/notifications", notifRoutes);
+app.use("/api/location",      locationRoutes);
 
-app.get("/", (req, res) => res.json({ status: "SmartService API is running" }));
+// ── Socket.IO events ──────────────────────────────────────────────
+io.on("connection", (socket) => {
+  console.log("Socket connected:", socket.id);
 
-app.use((err, req, res, next) => {
-  console.error("Unhandled error:", err);
-  res.status(500).json({ message: "Something went wrong" });
+  // Each user joins their own private room on login
+  socket.on("join", (userId) => {
+    socket.join(`user_${userId}`);
+  });
+
+  // Chat — forward message to receiver
+  socket.on("send_message", (data) => {
+    // data: { senderId, receiverId, bookingId, message, senderName }
+    io.to(`user_${data.receiverId}`).emit("receive_message", data);
+  });
+
+  // Location — provider emits this, customer receives location_update
+  socket.on("provider_location", (data) => {
+    // data: { providerId, customerId, bookingId, lat, lng }
+    io.to(`user_${data.customerId}`).emit("location_update", data);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("Socket disconnected:", socket.id);
+  });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
