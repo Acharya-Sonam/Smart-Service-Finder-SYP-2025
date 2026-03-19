@@ -12,26 +12,43 @@ import {
   getAllBookings,
   getAllReviews,
   deleteReview,
+  updateBookingStatus,
+  getSystemLogs,
+  getProviderLocations,
+  getRevenueStats
 } from "../controllers/admin.controller.js";
 
 const router = Router();
 
 router.use(verifyToken, authorizeRoles("Admin"));
 
-router.get("/stats",           getStats);
-router.get("/activity",        getRecentActivity);
+// Dashboard stats
+router.get("/stats", getStats);
+router.get("/activity", getRecentActivity);
+router.get("/revenue", getRevenueStats);
 
-router.get("/users",           getAllUsers);
-router.get("/users/:id",       getUserById);
-router.delete("/users/:id",    deleteUser);
+// User management
+router.get("/users", getAllUsers);
+router.get("/users/:id", getUserById);
+router.delete("/users/:id", deleteUser);
 
-router.get("/services",        getAllServices);
+// Service management
+router.get("/services", getAllServices);
 router.delete("/services/:id", deleteService);
-router.patch("/services/:id",  toggleService);
+router.patch("/services/:id/toggle", toggleService);
 
-router.get("/bookings",        getAllBookings);
+// Booking management
+router.get("/bookings", getAllBookings);
+router.patch("/bookings/:id/status", updateBookingStatus);
 
-router.get("/reviews",         getAllReviews);
-router.delete("/reviews/:id",  deleteReview);
+// Review management
+router.get("/reviews", getAllReviews);
+router.delete("/reviews/:id", deleteReview);
+
+// System logs
+router.get("/logs", getSystemLogs);
+
+// Live location tracking
+router.get("/locations", getProviderLocations);
 
 export default router;

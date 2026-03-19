@@ -1,4 +1,5 @@
 import AdminModel from "../models/Admin.js";
+import db from "../database.js";
 
 export const getStats = async (req, res) => {
   try {
@@ -120,6 +121,55 @@ export const deleteReview = async (req, res) => {
     return res.status(200).json({ message: "Review deleted successfully" });
   } catch (err) {
     console.error("deleteReview error:", err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const updateBookingStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const [result] = await db.query(
+      "UPDATE bookings SET status = ? WHERE id = ?",
+      [status, req.params.id]
+    );
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+    
+    return res.status(200).json({ message: "Booking status updated" });
+  } catch (err) {
+    console.error("updateBookingStatus error:", err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getSystemLogs = async (req, res) => {
+  try {
+    const logs = await AdminModel.getSystemLogs();
+    return res.status(200).json({ logs });
+  } catch (err) {
+    console.error("getSystemLogs error:", err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getProviderLocations = async (req, res) => {
+  try {
+    const locations = await AdminModel.getProviderLocations();
+    return res.status(200).json({ locations });
+  } catch (err) {
+    console.error("getProviderLocations error:", err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getRevenueStats = async (req, res) => {
+  try {
+    const revenue = await AdminModel.getRevenueStats();
+    return res.status(200).json({ revenue });
+  } catch (err) {
+    console.error("getRevenueStats error:", err);
     return res.status(500).json({ message: "Internal server error" });
   }
 };

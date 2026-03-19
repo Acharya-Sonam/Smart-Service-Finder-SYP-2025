@@ -5,6 +5,7 @@ import http           from "http";
 import { Server }     from "socket.io";
 
 import authRoutes     from "./routes/auth.routes.js";
+import adminRoutes    from "./routes/admin.routes.js";  // ADD THIS LINE
 import bookingRoutes  from "./routes/booking.routes.js";   // your friend's
 import reviewRoutes   from "./routes/review.routes.js";    // your friend's
 import serviceRoutes  from "./routes/service.routes.js";   // your friend's
@@ -28,7 +29,9 @@ app.use(express.json());
 app.use((req, _res, next) => { req.io = io; next(); });
 
 // ── Routes ────────────────────────────────────────────────────────
+// ── Routes ────────────────────────────────────────────────────────
 app.use("/api/auth",          authRoutes);
+app.use("/api/admin",          adminRoutes);  // Add this line
 app.use("/api/bookings",      bookingRoutes);
 app.use("/api/reviews",       reviewRoutes);
 app.use("/api/services",      serviceRoutes);
