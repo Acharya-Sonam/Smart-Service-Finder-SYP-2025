@@ -59,31 +59,43 @@ const BookingModel = {
     return rows[0] || null;
   },
 
-  async findByCustomer(customer_id) {
-    const [rows] = await db.query(
-      `SELECT b.*, s.title AS service_title, s.price AS service_price, u.fullName AS provider_name
-       FROM bookings b
-       JOIN services s ON s.id = b.service_id
-       JOIN users u ON u.id = b.provider_id
-       WHERE b.customer_id = ?
-       ORDER BY b.booking_date DESC`,
-      [customer_id]
-    );
-    return rows;
-  },
+ async findByCustomer(customer_id) {
+  const [rows] = await db.query(
+    `SELECT b.*,
+            s.title AS service_title,
+            s.price AS service_price,
+            u.fullName AS provider_name,
+            u.id AS provider_id,
+            r.id AS review_id,
+            r.rating
+     FROM bookings b
+     JOIN services s ON s.id = b.service_id
+     JOIN users u ON u.id = b.provider_id
+     LEFT JOIN reviews r ON r.booking_id = b.id
+     WHERE b.customer_id = ?
+     ORDER BY b.booking_date DESC`,
+    [customer_id]
+  );
+  return rows;
+},
 
-  async findByProvider(provider_id) {
-    const [rows] = await db.query(
-      `SELECT b.*, s.title AS service_title, u.fullName AS customer_name, u.contact AS customer_contact
-       FROM bookings b
-       JOIN services s ON s.id = b.service_id
-       JOIN users u ON u.id = b.customer_id
-       WHERE b.provider_id = ?
-       ORDER BY b.booking_date DESC`,
-      [provider_id]
-    );
-    return rows;
-  },
+ async findByProvider(provider_id) {
+  const [rows] = await db.query(
+    `SELECT b.*,
+            s.title AS service_title,
+            u.fullName AS customer_name,
+            u.contact AS customer_contact,
+            u.id AS customer_id,
+            b.provider_id
+     FROM bookings b
+     JOIN services s ON s.id = b.service_id
+     JOIN users u ON u.id = b.customer_id
+     WHERE b.provider_id = ?
+     ORDER BY b.booking_date DESC`,
+    [provider_id]
+  );
+  return rows;
+},
 
   async updateStatus(id, status) {
     const [result] = await db.query(

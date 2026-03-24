@@ -1,36 +1,53 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
 import LandingPage from "./pages/LandingPage";
+import AuthForm from "./pages/AuthForm";
+import AdminDashboard from "./pages/AdminDashboard";
+import UserManagement from "./pages/UserManagement";
+import LocationTracking from "./pages/LocationTracking";
 
-function App() {
-  const [count, setCount] = useState(0)
+// Protected Route Component (to keep people out of the dashboard if not logged in)
+function PrivateRoute({ children, role }) {
+  const user = JSON.parse(localStorage.getItem("user") || "null");
+  const token = localStorage.getItem("token");
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+  // If no token or no user, go to login
+  if (!token || !user) return <Navigate to="/auth" />;
+
+  // If a specific role is required (like 'admin') and user doesn't have it
+  if (role && user.role !== role) return <Navigate to="/" />;
+
+  return children;
 }
 
-export default App
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/auth" element={<AuthForm />} />
+
+        {/* Protected Admin Routes */}
+        <Route 
+          path="/admin" 
+          element={
+            <PrivateRoute role="admin">
+              <AdminDashboard />
+            </PrivateRoute>
+          } 
+        />
+
+        {/* You can add more specific routes here if needed */}
+        <Route path="/users" element={<UserManagement />} />
+        <Route path="/location" element={<LocationTracking />} />
+
+        {/* Redirect any unknown path to home */}
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+export default App;

@@ -19,14 +19,14 @@ export const createBooking = async (req, res) => {
       return res.status(400).json({ message: "You cannot have more than 5 active bookings at a time" });
     }
 
-    const insertId = await BookingModel.create({
-      customer_id: req.user.id,
-      provider_id: service.provider_id,
-      service_id,
-      booking_date,
-      booking_time,
-      notes,
-    });
+ const insertId = await BookingModel.create({
+  customer_id: req.user.id,
+  provider_id: service.providerId || service.provider_id,
+  service_id: service_id,
+  booking_date: booking_date,
+  booking_time: booking_time,
+  notes: notes || "",
+});
 
     return res.status(201).json({ message: "Booking request sent successfully", bookingId: insertId });
   } catch (err) {
@@ -37,7 +37,10 @@ export const createBooking = async (req, res) => {
 
 export const getMyBookings = async (req, res) => {
   try {
+    console.log("USER DATA:", req.user); 
+
     const bookings = await BookingModel.findByCustomer(req.user.id);
+
     return res.status(200).json({ count: bookings.length, bookings });
   } catch (err) {
     console.error("getMyBookings error:", err);
