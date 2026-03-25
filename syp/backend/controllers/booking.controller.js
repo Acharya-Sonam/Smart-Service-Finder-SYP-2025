@@ -1,6 +1,8 @@
 import BookingModel from "../models/Booking.js";
-import ServiceModel from "../models/Service.js";
+import ServiceModel  from "../models/Service.js";
+import db            from "../database.js";
 
+// ── Create Booking ────────────────────────────────────────────────
 export const createBooking = async (req, res) => {
   const { service_id, booking_date, booking_time, notes } = req.body;
 
@@ -10,23 +12,34 @@ export const createBooking = async (req, res) => {
 
   try {
     const service = await ServiceModel.findById(service_id);
-    if (!service) {
-      return res.status(404).json({ message: "Service not found" });
-    }
+    if (!service) return res.status(404).json({ message: "Service not found" });
 
     const activeCount = await BookingModel.countActive(req.user.id);
     if (activeCount >= 5) {
       return res.status(400).json({ message: "You cannot have more than 5 active bookings at a time" });
     }
 
- const insertId = await BookingModel.create({
-  customer_id: req.user.id,
-  provider_id: service.providerId || service.provider_id,
-  service_id: service_id,
-  booking_date: booking_date,
-  booking_time: booking_time,
-  notes: notes || "",
-});
+    const provider_id = service.provider_id || service.providerId;
+
+    const insertId = await BookingModel.create({
+      customer_id:  req.user.id,
+      provider_id,
+      service_id,
+      booking_date,
+      booking_time,
+      notes: notes || "",
+    });
+
+    // ── Notify provider ──────────────────────────────────────────
+    await db.query(
+      "INSERT INTO notifications (user_id, type, message, ref_id) VALUES (?,?,?,?)",
+      [provider_id, "booking", "📅 You have a new booking request!", insertId]
+    );
+    req.io?.to(`user_${provider_id}`).emit("new_notification", {
+      type:    "booking",
+      message: "📅 You have a new booking request!",
+    });
+    // ─────────────────────────────────────────────────────────────
 
     return res.status(201).json({ message: "Booking request sent successfully", bookingId: insertId });
   } catch (err) {
@@ -35,12 +48,11 @@ export const createBooking = async (req, res) => {
   }
 };
 
+// ── Get My Bookings (Customer) ────────────────────────────────────
 export const getMyBookings = async (req, res) => {
   try {
-    console.log("USER DATA:", req.user); 
-
+    console.log("USER DATA:", req.user);
     const bookings = await BookingModel.findByCustomer(req.user.id);
-
     return res.status(200).json({ count: bookings.length, bookings });
   } catch (err) {
     console.error("getMyBookings error:", err);
@@ -48,6 +60,7 @@ export const getMyBookings = async (req, res) => {
   }
 };
 
+// ── Get Provider Bookings ─────────────────────────────────────────
 export const getProviderBookings = async (req, res) => {
   try {
     const bookings = await BookingModel.findByProvider(req.user.id);
@@ -58,12 +71,11 @@ export const getProviderBookings = async (req, res) => {
   }
 };
 
+// ── Get Booking By ID ─────────────────────────────────────────────
 export const getBookingById = async (req, res) => {
   try {
     const booking = await BookingModel.findById(req.params.id);
-    if (!booking) {
-      return res.status(404).json({ message: "Booking not found" });
-    }
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
     if (booking.customer_id !== req.user.id && booking.provider_id !== req.user.id) {
       return res.status(403).json({ message: "Access denied" });
     }
@@ -74,19 +86,17 @@ export const getBookingById = async (req, res) => {
   }
 };
 
+// ── Update Booking Status ─────────────────────────────────────────
 export const updateBookingStatus = async (req, res) => {
   const { status } = req.body;
 
-  if (!status) {
-    return res.status(400).json({ message: "status is required" });
-  }
+  if (!status) return res.status(400).json({ message: "status is required" });
 
   try {
     const booking = await BookingModel.findById(req.params.id);
-    if (!booking) {
-      return res.status(404).json({ message: "Booking not found" });
-    }
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
 
+    // Provider rules
     if (req.user.role === "Service Provider") {
       if (booking.provider_id !== req.user.id) {
         return res.status(403).json({ message: "You can only update your own bookings" });
@@ -97,6 +107,7 @@ export const updateBookingStatus = async (req, res) => {
       }
     }
 
+    // Customer rules
     if (req.user.role === "Customer") {
       if (booking.customer_id !== req.user.id) {
         return res.status(403).json({ message: "You can only cancel your own bookings" });
@@ -112,6 +123,31 @@ export const updateBookingStatus = async (req, res) => {
     }
 
     await BookingModel.updateStatus(req.params.id, status);
+
+    // ── Notify the other party ───────────────────────────────────
+    const notifyUserId = req.user.role === "Service Provider"
+      ? booking.customer_id
+      : booking.provider_id;
+
+    const notifMessages = {
+      accepted:  "✅ Your booking has been accepted! Provider is on the way.",
+      rejected:  "❌ Your booking was rejected by the provider.",
+      completed: "🎉 Your service is complete. Please leave a review!",
+      cancelled: "🚫 A booking has been cancelled.",
+    };
+
+    if (notifMessages[status]) {
+      await db.query(
+        "INSERT INTO notifications (user_id, type, message, ref_id) VALUES (?,?,?,?)",
+        [notifyUserId, "status", notifMessages[status], req.params.id]
+      );
+      req.io?.to(`user_${notifyUserId}`).emit("new_notification", {
+        type:    "status",
+        message: notifMessages[status],
+      });
+    }
+    // ─────────────────────────────────────────────────────────────
+
     return res.status(200).json({ message: `Booking ${status} successfully` });
   } catch (err) {
     console.error("updateBookingStatus error:", err);
