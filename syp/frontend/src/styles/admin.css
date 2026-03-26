@@ -1,0 +1,73 @@
+
+
+/* Import Google Fonts - This will apply globally but that's okay */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #0e1117;
+    color: #fff;
+    margin: 0;
+    padding: 0;
+}
+
+/* Navigation bar */
+.navbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px; /* space between buttons */
+    padding: 10px;
+    background-color: #1c1f28;
+    align-items: center;
+}
+
+/* Navbar buttons */
+.navbar button {
+    display: flex;
+    align-items: center;
+    gap: 5px; /* space between icon and text */
+    padding: 8px 12px;
+    background-color: #2a2d36;
+    border: none;
+    border-radius: 5px;
+    color: #fff;
+    cursor: pointer;
+}
+
+.navbar button:hover {
+    background-color: #3b3f4a;
+}
+
+/* Dashboard stats container */
+.stats-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin: 20px;
+}
+
+/* Each stat card */
+.stat-card {
+    flex: 1 1 200px; /* responsive width */
+    background-color: #1c1f28;
+    padding: 15px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.stat-card i {
+    font-size: 24px;
+    margin-bottom: 5px;
+}
+
+/* Recent activity */
+.recent-activity {
+    margin: 20px;
+    background-color: #1c1f28;
+    padding: 15px;
+    border-radius: 8px;
+}
