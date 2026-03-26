@@ -15,7 +15,7 @@ const LocationTracking = () => {
   useEffect(() => {
     fetchLocations();
     
-    // Connect to socket for real-time updates
+    // Connect to socket for real-time updates in web application
     socketRef.current = io('http://localhost:5000');
     
     socketRef.current.on('location_update', (data) => {
@@ -71,7 +71,6 @@ const LocationTracking = () => {
     });
 
     mapRef.current = map;
-
     // Add markers for each provider
     locations.forEach(location => {
       addMarker(location);
@@ -188,7 +187,7 @@ const LocationTracking = () => {
           <div id="map" className="w-full h-[600px] rounded-lg border"></div>
         </div>
 
-        {/* Provider List */}
+        {/* Provider List for active provider */}
         <div className="lg:col-span-1">
           <h4 className="font-semibold mb-4">Active Providers ({locations.length})</h4>
           
@@ -256,6 +255,7 @@ const LocationTracking = () => {
         </div>
       </div>
 
+
       {/* Selected Provider Details */}
       {selectedProvider && (
         <div className="p-6 border-t">
@@ -297,5 +297,5 @@ const LocationTracking = () => {
     </div>
   );
 };
-
 export default LocationTracking;
+
