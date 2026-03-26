@@ -15,7 +15,11 @@ const LocationTracking = () => {
   useEffect(() => {
     fetchLocations();
     
+<<<<<<< HEAD
     // Connect to socket for real-time updates
+=======
+    // Connect to socket for real-time updates in web application
+>>>>>>> 0cb00864c984a909126aef019326fe2b023bd812
     socketRef.current = io('http://localhost:5000');
     
     socketRef.current.on('location_update', (data) => {
@@ -71,7 +75,10 @@ const LocationTracking = () => {
     });
 
     mapRef.current = map;
+<<<<<<< HEAD
 
+=======
+>>>>>>> 0cb00864c984a909126aef019326fe2b023bd812
     // Add markers for each provider
     locations.forEach(location => {
       addMarker(location);
@@ -188,7 +195,11 @@ const LocationTracking = () => {
           <div id="map" className="w-full h-[600px] rounded-lg border"></div>
         </div>
 
+<<<<<<< HEAD
         {/* Provider List */}
+=======
+        {/* Provider List for active provider */}
+>>>>>>> 0cb00864c984a909126aef019326fe2b023bd812
         <div className="lg:col-span-1">
           <h4 className="font-semibold mb-4">Active Providers ({locations.length})</h4>
           
@@ -256,6 +267,10 @@ const LocationTracking = () => {
         </div>
       </div>
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 0cb00864c984a909126aef019326fe2b023bd812
       {/* Selected Provider Details */}
       {selectedProvider && (
         <div className="p-6 border-t">
@@ -297,5 +312,10 @@ const LocationTracking = () => {
     </div>
   );
 };
+<<<<<<< HEAD
 
 export default LocationTracking;
+=======
+export default LocationTracking;
+
+>>>>>>> 0cb00864c984a909126aef019326fe2b023bd812
