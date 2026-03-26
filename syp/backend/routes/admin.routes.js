@@ -7,15 +7,20 @@ import {
   getUserById,
   deleteUser,
   getAllServices,
+  createService,        // Make sure this is imported
+  updateService,        // Make sure this is imported
   deleteService,
   toggleService,
   getAllBookings,
-  getAllReviews,
-  deleteReview,
   updateBookingStatus,
+  getAllReviews,
+  approveReview,        // Make sure this is imported
+  deleteReview,
   getSystemLogs,
   getProviderLocations,
-  getRevenueStats
+  getRevenueStats,
+  getSettings,          // Make sure this is imported
+  updateSettings        // Make sure this is imported
 } from "../controllers/admin.controller.js";
 
 const router = Router();
@@ -34,6 +39,8 @@ router.delete("/users/:id", deleteUser);
 
 // Service management
 router.get("/services", getAllServices);
+router.post("/services", createService);        
+router.put("/services/:id", updateService);     
 router.delete("/services/:id", deleteService);
 router.patch("/services/:id/toggle", toggleService);
 
@@ -43,6 +50,7 @@ router.patch("/bookings/:id/status", updateBookingStatus);
 
 // Review management
 router.get("/reviews", getAllReviews);
+router.put("/reviews/:id/approve", approveReview);  
 router.delete("/reviews/:id", deleteReview);
 
 // System logs
@@ -50,5 +58,9 @@ router.get("/logs", getSystemLogs);
 
 // Live location tracking
 router.get("/locations", getProviderLocations);
+
+// Settings management
+router.get("/settings", getSettings);      
+router.put("/settings", updateSettings);    
 
 export default router;

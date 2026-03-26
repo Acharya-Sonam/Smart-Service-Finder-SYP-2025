@@ -48,14 +48,16 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
-    window.location.href = '/login';
+    // Change this to redirect to auth page
+    window.location.href = '/auth';
   };
 
   const value = {
     user,
     loading,
     login,
-    logout
+    logout,
+    isAuthenticated: !!user
   };
 
   return (

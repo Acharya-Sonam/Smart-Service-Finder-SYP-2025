@@ -5,10 +5,10 @@ import http           from "http";
 import { Server }     from "socket.io";
 
 import authRoutes     from "./routes/auth.routes.js";
-import adminRoutes    from "./routes/admin.routes.js";  // ADD THIS LINE
-import bookingRoutes  from "./routes/booking.routes.js";   // your friend's
-import reviewRoutes   from "./routes/review.routes.js";    // your friend's
-import serviceRoutes  from "./routes/service.routes.js";   // your friend's
+import adminRoutes    from "./routes/admin.routes.js";  
+import bookingRoutes  from "./routes/booking.routes.js";   
+import reviewRoutes   from "./routes/review.routes.js";    
+import serviceRoutes  from "./routes/service.routes.js";   
 import chatRoutes     from "./routes/chat.routes.js";
 import notifRoutes    from "./routes/notification.routes.js";
 import locationRoutes from "./routes/location.routes.js";
@@ -31,7 +31,7 @@ app.use((req, _res, next) => { req.io = io; next(); });
 // ── Routes ────────────────────────────────────────────────────────
 // ── Routes ────────────────────────────────────────────────────────
 app.use("/api/auth",          authRoutes);
-app.use("/api/admin",          adminRoutes);  // Add this line
+app.use("/api/admin",          adminRoutes);  
 app.use("/api/bookings",      bookingRoutes);
 app.use("/api/reviews",       reviewRoutes);
 app.use("/api/services",      serviceRoutes);
@@ -65,5 +65,5 @@ io.on("connection", (socket) => {
   });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

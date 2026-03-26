@@ -1,35 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Users, 
-  Briefcase, 
-  Calendar, 
-  Star, 
-  TrendingUp, 
-  MapPin,
-  LogOut,
-  Menu,
-  X,
-  Home,
-  Settings,
-  Activity,
-  DollarSign
+  Users, Briefcase, Calendar, Star, TrendingUp, MapPin,
+  LogOut, Menu, X, Home, Settings, Activity, DollarSign
 } from 'lucide-react';
-import { Line, Bar, Doughnut } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-} from 'chart.js';
-import api from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../utils/api';
+
+// Import your components
 import UserManagement from './UserManagement';
 import ServiceManagement from './ServiceManagement';
 import BookingManagement from './BookingManagement';
@@ -37,19 +14,7 @@ import ReviewManagement from './ReviewManagement';
 import LocationTracking from './LocationTracking';
 import RevenueStats from './RevenueStats';
 import SystemLogs from './SystemLogs';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-);
+import AdminSettings from './AdminSettings';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -57,7 +22,7 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
   const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { user, logout } = useAuth();
+  const { user, logout, loading: authLoading } = useAuth();
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
@@ -72,8 +37,10 @@ const AdminDashboard = () => {
   ];
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    if (user) {
+      fetchDashboardData();
+    }
+  }, [user]);
 
   const fetchDashboardData = async () => {
     try {
@@ -92,6 +59,8 @@ const AdminDashboard = () => {
   };
 
   const renderContent = () => {
+    console.log('Active tab:', activeTab); // Debug
+    
     switch (activeTab) {
       case 'dashboard':
         return <DashboardHome stats={stats} recentActivity={recentActivity} loading={loading} />;
@@ -115,6 +84,20 @@ const AdminDashboard = () => {
         return <DashboardHome stats={stats} recentActivity={recentActivity} loading={loading} />;
     }
   };
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  // If no user, don't render (will redirect)
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
@@ -161,9 +144,9 @@ const AdminDashboard = () => {
               {menuItems.find(item => item.id === activeTab)?.label}
             </h2>
             <div className="flex items-center">
-              <span className="text-gray-600 mr-4">Welcome, {user?.fullName}</span>
+              <span className="text-gray-600 mr-4">Welcome, {user?.fullName || user?.name}</span>
               <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold">
-                {user?.fullName?.charAt(0)}
+                {(user?.fullName || user?.name)?.charAt(0) || 'A'}
               </div>
             </div>
           </div>
@@ -177,6 +160,7 @@ const AdminDashboard = () => {
   );
 };
 
+// DashboardHome component
 const DashboardHome = ({ stats, recentActivity, loading }) => {
   if (loading) {
     return (
@@ -186,45 +170,15 @@ const DashboardHome = ({ stats, recentActivity, loading }) => {
     );
   }
 
-  const statCards = stats ? [
-    { label: 'Total Users', value: stats.total_users, icon: Users, color: 'bg-blue-500' },
-    { label: 'Total Services', value: stats.total_services, icon: Briefcase, color: 'bg-green-500' },
-    { label: 'Total Bookings', value: stats.total_bookings, icon: Calendar, color: 'bg-purple-500' },
-    { label: 'Completed Bookings', value: stats.completed_bookings, icon: TrendingUp, color: 'bg-yellow-500' },
-    { label: 'Pending Bookings', value: stats.pending_bookings, icon: Activity, color: 'bg-orange-500' },
-    { label: 'Total Reviews', value: stats.total_reviews, icon: Star, color: 'bg-pink-500' },
-    { label: 'Total Revenue', value: `$${stats.total_revenue?.toLocaleString() || 0}`, icon: DollarSign, color: 'bg-indigo-500' },
-  ] : [];
-
-  // Chart data
-  const bookingChartData = {
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    datasets: [
-      {
-        label: 'Bookings',
-        data: [12, 19, 15, 17, 14, 13, 10],
-        borderColor: 'rgb(79, 70, 229)',
-        backgroundColor: 'rgba(79, 70, 229, 0.1)',
-        fill: true,
-        tension: 0.4
-      }
-    ]
-  };
-
-  const userChartData = {
-    labels: ['Customers', 'Providers', 'Admins'],
-    datasets: [
-      {
-        data: [stats?.total_customers || 0, stats?.total_providers || 0, 1],
-        backgroundColor: ['#3B82F6', '#10B981', '#F59E0B'],
-        borderWidth: 0
-      }
-    ]
-  };
+  const statCards = [
+    { label: 'Total Users', value: stats?.total_users || 0, icon: Users, color: 'bg-blue-500' },
+    { label: 'Total Services', value: stats?.total_services || 0, icon: Briefcase, color: 'bg-green-500' },
+    { label: 'Total Bookings', value: stats?.total_bookings || 0, icon: Calendar, color: 'bg-purple-500' },
+    { label: 'Total Revenue', value: `$${stats?.total_revenue?.toLocaleString() || 0}`, icon: DollarSign, color: 'bg-indigo-500' },
+  ];
 
   return (
     <div>
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {statCards.map((card, index) => (
           <div key={index} className="bg-white rounded-lg shadow-md p-6">
@@ -241,25 +195,10 @@ const DashboardHome = ({ stats, recentActivity, loading }) => {
         ))}
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold mb-4">Weekly Bookings</h3>
-          <Line data={bookingChartData} options={{ responsive: true, maintainAspectRatio: false }} height={300} />
-        </div>
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold mb-4">User Distribution</h3>
-          <div className="h-80 flex items-center justify-center">
-            <Doughnut data={userChartData} options={{ responsive: true, maintainAspectRatio: false }} />
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Activity */}
       <div className="bg-white rounded-lg shadow-md p-6">
         <h3 className="text-lg font-semibold mb-4">Recent Activity</h3>
         <div className="space-y-4">
-          {recentActivity.map((activity, index) => (
+          {recentActivity?.map((activity, index) => (
             <div key={index} className="flex items-center justify-between border-b pb-2">
               <div>
                 <p className="text-sm text-gray-600">{activity.description}</p>
