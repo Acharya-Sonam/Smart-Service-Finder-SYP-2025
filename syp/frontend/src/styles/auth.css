@@ -31,7 +31,17 @@ body{
   color:var(--text);
   overflow-x:hidden;
 }
+.forgot-link span {
+  color: #3b82f6;
+  cursor: pointer;
+  user-select: none;
+  font-size: .85rem;
+  transition: color .2s ease;
+}
 
+.forgot-link span:hover {
+  color: #60a5fa;
+}
 /* ───────── Animated background ───────── */
 
 body::before{

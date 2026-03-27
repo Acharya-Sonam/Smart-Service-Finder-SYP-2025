@@ -56,7 +56,7 @@ export default function AuthForm() {
     const e = {};
     if (isSignup && !formData.fullName.trim()) e.fullName = "Name is required";
     if (!formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) e.email = "Valid email required";
-    if (formData.password.length < 6) e.password = "Min 6 characters";
+    if (formData.password.length < 6) e.password = "Password is required";
     if (isSignup && !formData.contact.trim())  e.contact  = "Contact is required";
     if (isSignup && !formData.location.trim()) e.location = "Location is required";
     return e;
